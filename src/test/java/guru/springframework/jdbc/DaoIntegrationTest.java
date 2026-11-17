@@ -8,6 +8,7 @@ import guru.springframework.jdbc.dao.BookDaoImpl;
 import guru.springframework.jdbc.domain.Author;
 
 import guru.springframework.jdbc.domain.Book;
+import guru.springframework.jdbc.repositories.BookRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -19,13 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Created by jt on 8/20/21.
- */
-
-@ActiveProfiles("local")
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({AuthorDaoImpl.class, BookDaoImpl.class})
 public class DaoIntegrationTest {
 
@@ -144,10 +139,63 @@ public class DaoIntegrationTest {
     }
 
     @Test
+    void testFindAuthorsByName() {
+        Author author = new Author();
+        author.setFirstName("Ada");
+        author.setLastName("Lovelace");
+        authorDao.saveNewAuthor(author);
+
+        Author otherAuthor = new Author();
+        otherAuthor.setFirstName("Ada");
+        otherAuthor.setLastName("Byron");
+        authorDao.saveNewAuthor(otherAuthor);
+
+        var authors = authorDao.findAuthorsByName("Ada", "Lovelace");
+
+        assertThat(authors.size()).isEqualTo(1);
+        assertThat(authors.get(0).getFirstName()).isEqualTo("Ada");
+        assertThat(authors.get(0).getLastName()).isEqualTo("Lovelace");
+    }
+
+    @Test
+    void testUpdateAuthorWithNamedParameters() {
+        Author author = new Author();
+        author.setFirstName("Grace");
+        author.setLastName("Hopper");
+        Author saved = authorDao.saveNewAuthor(author);
+
+        saved.setFirstName("Grace B.");
+        saved.setLastName("Murray Hopper");
+        Author updated = authorDao.updateAuthorWithNamedParameters(saved);
+
+        assertThat(updated.getId()).isEqualTo(saved.getId());
+        assertThat(updated.getFirstName()).isEqualTo("Grace B.");
+        assertThat(updated.getLastName()).isEqualTo("Murray Hopper");
+    }
+
+    @Test
     void testGetAuthor() {
 
         Author author = authorDao.getById(1l);
 
         assertThat(author.getId()).isNotNull();
     }
+}
+
+class H2Test extends DaoIntegrationTest {
+}
+
+@ActiveProfiles("local")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class MySQLIntegrationTest extends DaoIntegrationTest {
+
+    @Autowired
+    BookRepository bookRepository;
+
+    @Test
+    void testMySQL() {
+        long countBefore = bookRepository.count();
+        assertThat(countBefore).isGreaterThan(0);
+    }
+
 }
