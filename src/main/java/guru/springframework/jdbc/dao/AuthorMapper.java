@@ -8,9 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-/**
- * Created by jt on 8/23/21.
- */
 public class AuthorMapper implements RowMapper<Author> {
     @Override
     public Author mapRow(ResultSet rs, int rowNum) throws SQLException {
