@@ -2,11 +2,12 @@ package guru.springframework.jdbc.dao;
 
 import guru.springframework.jdbc.domain.Book;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by jt on 8/25/21.
- */
+import java.sql.Statement;
+
 @Component
 public class BookDaoImpl implements BookDao {
     private final JdbcTemplate jdbcTemplate;
@@ -27,11 +28,24 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public Book saveNewBook(Book book) {
-        jdbcTemplate.update("INSERT INTO book (isbn, publisher, title, author_id) VALUES (?, ?, ?, ?)",
-                book.getIsbn(), book.getPublisher(), book.getTitle(), book.getAuthorId());
+        KeyHolder keyHolder = new GeneratedKeyHolder(); // Holder for generated id key after insert
+        jdbcTemplate.update(connection -> {
+            var statement = connection.prepareStatement(
+                    "INSERT INTO book (isbn, publisher, title, author_id) VALUES (?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, book.getIsbn());
+            statement.setString(2, book.getPublisher());
+            statement.setString(3, book.getTitle());
+            if (book.getAuthorId() != null) {
+                statement.setLong(4, book.getAuthorId());
+            } else {
+                statement.setNull(4, -5);
+            }
 
-        Long createdId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+            return statement;
+        }, keyHolder);
 
+        Long createdId = keyHolder.getKey().longValue(); // extracting the id
         return this.getById(createdId);
     }
 
@@ -48,7 +62,7 @@ public class BookDaoImpl implements BookDao {
         jdbcTemplate.update("DELETE from book where id = ?", id);
     }
 
-    private BookMapper getBookMapper(){
+    private BookMapper getBookMapper() {
         return new BookMapper();
     }
 }
