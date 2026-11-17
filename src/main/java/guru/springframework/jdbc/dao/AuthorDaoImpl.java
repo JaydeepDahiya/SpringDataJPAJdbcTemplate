@@ -15,6 +15,7 @@ import java.util.List;
 @Component
 public class AuthorDaoImpl implements AuthorDao {
 
+    // Autowired jdbcTemplate and namedParameterJdbcTemplate
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -37,7 +38,7 @@ public class AuthorDaoImpl implements AuthorDao {
 
     @Override
     public Author saveNewAuthor(Author author) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        KeyHolder keyHolder = new GeneratedKeyHolder(); // Holder for generated id key after insert
         jdbcTemplate.update(connection -> {
             var statement = connection.prepareStatement(
                     "INSERT INTO author (first_name, last_name) VALUES (?, ?)",
@@ -47,7 +48,7 @@ public class AuthorDaoImpl implements AuthorDao {
             return statement;
         }, keyHolder);
 
-        Long createdId = keyHolder.getKey().longValue();
+        Long createdId = keyHolder.getKey().longValue(); // extracting the id
         return this.getById(createdId);
     }
 
@@ -82,7 +83,6 @@ public class AuthorDaoImpl implements AuthorDao {
     public Author updateAuthor(Author author) {
         jdbcTemplate.update("UPDATE author SET first_name = ?, last_name = ? WHERE id = ?",
                 author.getFirstName(), author.getLastName(), author.getId());
-
         return this.getById(author.getId());
     }
 
@@ -91,6 +91,7 @@ public class AuthorDaoImpl implements AuthorDao {
         jdbcTemplate.update("DELETE FROM author WHERE id = ?", id);
     }
 
+    // used to provide a new instance of RowMapper for every call
     private RowMapper<Author> getRowMapper() {
         return new AuthorMapper();
     }
