@@ -12,9 +12,6 @@ import org.springframework.stereotype.Component;
 import java.sql.Statement;
 import java.util.List;
 
-/**
- * Created by jt on 8/22/21.
- */
 @Component
 public class AuthorDaoImpl implements AuthorDao {
 
@@ -56,8 +53,9 @@ public class AuthorDaoImpl implements AuthorDao {
 
     // Named Parameters can be used to pass in values as key value pair(map). It is useful when many parameters are present
     // Sample method to get list of authors with specific firstname and lastname
+    @Override
     public List<Author> findAuthorsByName(String firstName, String lastName) {
-        String sql = "SELECT * FROM author WHERE first_name = :firstName, last_name = :lastName";
+        String sql = "SELECT * FROM author WHERE first_name = :firstName AND last_name = :lastName";
         // Bind each value to its corresponding named SQL parameter via MapSqlParameterSource
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("firstName", firstName)
@@ -67,6 +65,7 @@ public class AuthorDaoImpl implements AuthorDao {
 
     // Named Parameters can be used to pass in values as key value pair(map). It is useful when many parameters are present
     // Sample method to update a specific id author's firstname and lastname and then return the updated author
+    @Override
     public Author updateAuthorWithNamedParameters(Author author) {
         String sql = "UPDATE author SET first_name = :firstName, last_name = :lastName WHERE id = :id";
         // Bind each value to its corresponding named SQL parameter via MapSqlParameterSource
