@@ -72,6 +72,41 @@ public abstract class DaoIntegrationTest {
     }
 
     @Test
+    void testFindAuthorsByName() {
+        Author author = new Author();
+        author.setFirstName("Ada");
+        author.setLastName("Lovelace");
+        authorDao.saveNewAuthor(author);
+
+        Author otherAuthor = new Author();
+        otherAuthor.setFirstName("Ada");
+        otherAuthor.setLastName("Byron");
+        authorDao.saveNewAuthor(otherAuthor);
+
+        var authors = authorDao.findAuthorsByName("Ada", "Lovelace");
+
+        assertThat(authors.size()).isEqualTo(1);
+        assertThat(authors.get(0).getFirstName()).isEqualTo("Ada");
+        assertThat(authors.get(0).getLastName()).isEqualTo("Lovelace");
+    }
+
+    @Test
+    void testUpdateAuthorWithNamedParameters() {
+        Author author = new Author();
+        author.setFirstName("Grace");
+        author.setLastName("Hopper");
+        Author saved = authorDao.saveNewAuthor(author);
+
+        saved.setFirstName("Grace B.");
+        saved.setLastName("Murray Hopper");
+        Author updated = authorDao.updateAuthorWithNamedParameters(saved);
+
+        assertThat(updated.getId()).isEqualTo(saved.getId());
+        assertThat(updated.getFirstName()).isEqualTo("Grace B.");
+        assertThat(updated.getLastName()).isEqualTo("Murray Hopper");
+    }
+
+    @Test
     void testGetAuthor() {
 
         Author author = authorDao.getById(1l);
